@@ -1,0 +1,76 @@
+/* DateTimePicker */
+p {
+    margin: 0;
+    font-size: 12px;
+    line-height: 26px;
+}
+
+#datetimepicker6 .add-on,
+#datetimepicker7 .add-on {
+    border-left: 1px solid #ccc;
+}
+
+/* CSS Tabs */
+.tabs{
+    width: 100%;
+    float: none;
+    list-style: none;
+    position: relative;
+    text-align: left;
+    color: white;
+}
+.tabs li{
+    float: left;
+    display: block;
+}
+.tabs input[type="radio"]{
+    position: absolute;
+    top: -99999px;
+    left: -99999px;
+}
+.tabs label{
+    display: block;
+    padding: 14px 12px;
+    border-radius: 2px 2px 0 0;
+    font-size: 1em;
+    font-weight: 400;
+    text-transform: uppercase;
+    background-color: hsl(185, 61%, 68%);
+    cursor: pointer;
+    position: relative;
+    top: 4px;
+    transition: all .2s ease-in-out
+}
+.tabs label:hover{
+    background: hsl(190, 60%, 55%);
+}
+.tabs .tab-content{
+    z-index: 2;
+    display: none;
+    overflow: hidden;
+    width: 100%;
+    font-size: 1em;
+    line-height: 1.6em;
+    padding: 1.6em;
+    position: absolute;
+    top: 47px;
+    left: 0;
+    background: hsl(185, 61%, 46%);
+    margin-bottom: 10px;
+}
+.tabs [id^="tab"]:checked+label{
+    top: 0;
+    padding-top: 1em;
+    background: hsl(185, 61%, 46%);
+}
+.tabs [id^="tab"]:checked~[id^="tab-content"]{
+    display: block;
+}
+.durning{
+    float: right;
+    font-size: 0.8em;
+    margin-top: 23px;
+}
+footer{
+    margin-top: 30px;
+}
