@@ -83,19 +83,21 @@ $(function() {
 
 
     $('#datetimepicker6').datetimepicker({
-        format: 'YYYY/MM/DD',
+        format: 'YYYY/MM/DD/ HH:MM',
         widgetPositioning: {
             horizontal: 'right',
             vertical: 'bottom'
-        }
+        },
+        locale: 'zh-tw'
     });
     $('#datetimepicker7').datetimepicker({
-        format: 'YYYY/MM/DD',
+        format: 'YYYY/MM/DD/ HH:MM',
         useCurrent: false, //Important! See issue #1075 
         widgetPositioning: {
             horizontal: 'right',
             vertical: 'bottom'
-        }
+        },
+        locale: 'zh-tw'
     });
     $("#datetimepicker6").on("dp.change", function(e) {
         $('#datetimepicker7').data("DateTimePicker").minDate(e.date);
@@ -125,7 +127,6 @@ $(function() {
                 fdata.append('standName', selectedOP[selectedOP.selectedIndex].value);
             }
         }
-        var chart = new chartApply([{ name: '啟用App裝置數', total: 250 }, { name: '服務使用狀況報表(裝置數)', total: 250 }, { name: '服務使用狀況報表(人數)', total: 250 }, { name: '各設施使用狀況報表(裝置數)', total: 250 }, { name: '各設施使用狀況報表(人數)', total: 250 }, { name: '廣告發送與兌換狀況報表(裝置數)', total: 250 }, { name: '目前設施排隊狀況報表(人數)', total: 250 }]);
+        var chart = new chartApply([{app_on: [{name: '依年齡區分', total: [250, 130, 120] }, {name: '總攬', total:[320, 180]}]}, {server: [{ name: '服務使用狀況報表(裝置數)', total: 250 }]}, { name: '服務使用狀況報表(人數)', total: 250 }, { name: '各設施使用狀況報表(裝置數)', total: 250 }, { name: '各設施使用狀況報表(人數)', total: 250 }, { name: '廣告發送與兌換狀況報表(裝置數)', total: 250 }, { name: '目前設施排隊狀況報表(人數)', total: 250 }], true);
     })
-    
 });

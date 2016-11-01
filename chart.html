@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title></title>
+    <link rel="stylesheet" href="./css/bootstrap.css">
+    <link rel="stylesheet" href="./css/style.css">
+    <link rel="stylesheet" href="./css/icon_style.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.43/css/bootstrap-datetimepicker.min.css">
+    <link rel="stylesheet" href="./css/chartcss.css">
+    <script src="https://dl.dropboxusercontent.com/u/50502234/jquery.min.js"></script>
+    <script src="./js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.15.1/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.43/js/bootstrap-datetimepicker.min.js"></script>
+    <script src="js/bootstrap-datetimepicker.tw.js"></script>
+    <script src="./js/showtabs.js"></script>
+    <script src="./js/chartjs.js"></script>
+    <!-- HTML5 shim and Respond.js 讓 IE8 支援 HTML5 元素與媒體查詢 -->
+    <!-- 警告：Respond.js 無法在 file:// 協定下運作 -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    <script type="text/javascript">
+    function check_all(obj, cName) {
+        var checkboxs = document.getElementsByName(cName);
+        for (var i = 0; i < checkboxs.length; i++) {
+            checkboxs[i].checked = obj.checked;
+        }
+    }
+    </script>
+    <style>
+        .red{
+            color:  red;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="wrapper">
+        <div class="container-fluid">
+            <!-- Row start -->
+            <div class="row">
+                <div class="col-md-12 col-sm-12 col-xs-12">
+                    <div class="iconbox2">
+                    </div>
+                </div>
+                <div class="col-md-12 col-sm-12 col-xs-12">
+                    <div class="panel panel-default">
+                        <div class="panel-heading clearfix">
+                            <h3 class="panel-title">統計報表查詢</h3>
+                        </div>
+                        <div class="panel-body">
+                            <form name="chartargu" class="form-horizontal row-border">
+                                <div class="form-group odd">
+                                    <div class="col-md-6">
+                                        <label class="col-md-4 control-label">
+                                            <font color="red">*</font>查詢站點</label>
+                                        <div class="col-md-8">
+                                            <select id="stands" class="form-control">
+                                                <option value="請選擇">請選擇</option>
+                                                <option value="麗寶">麗寶樂園</option>
+                                                <option value="抽票">六福村</option>
+                                                <option value="取票">逢甲商圈</option>
+                                            </select>
+                                            開發注意:需綁站點權限
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group even">
+                                    <div class="col-md-12">
+                                        <label class="col-md-2 control-label">查詢期間</label>
+                                        <div class="col-md-10 col-lg-10">
+                                            <div class="input-group date" id='datetimepicker6'>
+                                                <input type='text' class="form-control-left" />
+                                                <span class="input-group-addon add-on">
+                                                    <span class="glyphicon glyphicon-calendar"></span>
+                                                </span>
+                                            </div> ~ &nbsp;
+                                            <div class="input-group date" id='datetimepicker7'>
+                                                <input type='text' class="form-control-left" />
+                                                <span class="input-group-addon add-on">
+                                                    <span class="glyphicon glyphicon-calendar"></span>
+                                                </span>
+                                            </div>
+                                            若無設定日期則為所有資料查詢
+                                            <br> 開發注意:需提供到時分的日期設定
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group odd">
+                                    <div class="col-md-6">
+                                        <label class="col-md-4 control-label">
+                                            <font color="red">*</font>查詢報表
+                                        </label>
+                                        <div id="chart_list" class="col-md-8">
+                                            <input type="checkbox" value="all" name="all" onclick="check_all(this,'c')" id="all">
+                                            <label for="00">全選/全不選</label>
+                                            <br>
+                                            <input type="checkbox" data-items="app_on" name="c" value="1">
+                                            <label for="01">啟用App裝置數</label>
+                                            <br>
+                                            <input type="checkbox" data-items="server_status_device" name="c" value="2">
+                                            <label for="02">服務使用狀況報表(裝置數)</label>
+                                            <br>
+                                            <input type="checkbox" data-items="server_status_ppl" name="c" value="3">
+                                            <label for="03">服務使用狀況報表(人數)</label>
+                                            <br>
+                                            <input type="checkbox" data-items="rides_status_device" name="c" value="4">
+                                            <label for="04">各設施使用狀況報表(裝置數)</label>
+                                            <br>
+                                            <input type="checkbox" data-items="rides_status_ppl" name="c" value="5">
+                                            <label for="07">各設施使用狀況報表(人數)</label>
+                                            <br>
+                                            <input type="checkbox" data-items="advertise" name="c" value="6">
+                                            <label for="05">廣告發送與兌換狀況報表(裝置數)</label>
+                                            <br>
+                                            <input type="checkbox" data-items="lineup_status" name="c" value="7">
+                                            <label for="06">目前設施排隊狀況報表(人數)</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group even">
+                                    <div class="col-md-6">
+                                        <label class="col-md-4 control-label"></label>
+                                        <div class="col-md-8">
+                                            <input type="button" class="form-control" id="send" value="查 詢"></input>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    <!-- Row end -->
+                    <div class="durning"></div>
+                    <ul id="chart" class="tabs"></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <footer>All rights reserved LINEUP ‧ 本系統支援：IE、Chrome、Firefox 瀏覽器</footer>
+</body>
+
+</html>
