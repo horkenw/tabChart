@@ -26,42 +26,37 @@ function addEvent(obj,evt,fn) {
 
 function chartApply(data, refreshed, language) {
     this.doc = document;
-    this.data = data.reverse();
+    this.data = data;
     this.wrapDom = this.doc.getElementById('chart');
     this.tabClass = 'tab';
-    this.chartLineup = 'themes_lineup_status';
-    this.chartAd = 'themes_advertise';
-    this.charRides_status_ppl = 'themes_rides_status_ppl';
-    this.chartRides_status_device = 'themes_rides_status_device';
-    this.chartServer_status_ppl = 'themes_server_status_ppl';
-    this.chartServer_status_device = 'themes_server_status_device';
-    this.chartApp_on = 'themes_app_on';
     this.refreshed = refreshed;
     this.language = chartApply.language[language];
     this.showDateRange();
     var tabs = this.checkboxCounts();
-    // var length = 2;
     this.chartTabs(tabs);
+
+    $( 'body' ).unmask();
+    $('#send').removeClass('deny');
 };
 
 chartApply.prototype.chartTabs = function(tabs) {
     var frag = this.doc.createDocumentFragment(),
         li = this.doc.createElement('li'),
         counts = tabs.length;
+    tabs.reverse();
 
     var liDOM = function() {
         var liClone = li.cloneNode(false),
             argu = Array.prototype.slice.call(arguments, 1),
             tabID = argu[1],
-            tabsName = {appUserReport: '啟用App裝置數', deviceReport:'服務使用狀況報表(裝置數)', userReport: '服務使用狀況報表(人數)'
-                , deviceFacilityReport: '各設施使用狀況報表(裝置數)', userFacilityReport: '各設施使用狀況報表(人數)', adReport: '廣告發送與兌換狀況報表(裝置數)', facilityUseAllCount: '目前設施排隊狀況報表(人數)'};
+            tabsName = {facilityUseAllCount: '目前設施排隊狀況報表(人數)', adReport: '廣告發送與兌換狀況報表(裝置數)', userFacilityReport: '各設施使用狀況報表(人數)', deviceFacilityReport: '各設施使用狀況報表(裝置數)'
+                , userReport: '服務使用狀況報表(人數)', deviceReport:'服務使用狀況報表(裝置數)', appUserReport: '啟用App裝置數'};
 
         liClone.innerHTML += sprintf('<input type=radio id=tab_%s name = %ss />', tabID[argu[0]], this.tabClass);
         liClone.innerHTML += sprintf('<label for=tab_%s data-chartname=%s>%s</label>', tabID[argu[0]], this.data[argu[0]].name, tabsName[this.data[argu[0]].name]);
         liClone.innerHTML += sprintf('<div id="tabs_%s" class="%s-content"></div>', tabID[argu[0]], this.tabClass);
         addEvent(liClone.getElementsByTagName('label')[0], 'click', this.placeChart.bind(this));
         addEvent(liClone.getElementsByTagName('label')[0], 'touchstart', this.placeChart.bind(this));
-        // liClone.getElementsByTagName('label')[0].addEventListener('click', this.placeChart.bind(this));
         return liClone;
     };
 
@@ -107,10 +102,7 @@ chartApply.prototype.showDateRange = function(){
 };
 
 chartApply.prototype.placeChart = function(){ // 給予tab基本的canvas，準備畫圖表
-    var evt = Array.prototype.slice.call(arguments, 0)[0].target,
-        cns = this.doc.createElement('canvas'),
-        elemArray = [],
-        frag = this.doc.createDocumentFragment();
+    var evt = Array.prototype.slice.call(arguments, 0)[0].target;
 
     for(var i=this.data.length; i--;)
         if(this.data[i].name === evt.getAttribute('data-chartname')){
@@ -120,13 +112,20 @@ chartApply.prototype.placeChart = function(){ // 給予tab基本的canvas，準�
 
     // if(evt.nextSibling) evt.nextSibling.removeChild();
     var appendCanvas = function(){
+        var cns = this.doc.createElement('canvas'),
+            frag = this.doc.createDocumentFragment();
+
         for(var item in this.chartChild){
             if(typeof this.chartChild[item] === 'string') continue;
+            frag.appendChild(this.setLabelName(item));
             frag.appendChild(cns.cloneNode(true));
             frag.children[frag.children.length-1].id=item.toLowerCase();
             frag.children[frag.children.length-1].setAttribute('data-chartId', item);
             evt.nextSibling.appendChild(frag);
-            this.showLineChart(evt.nextSibling.childNodes[evt.nextSibling.childNodes.length-1], item);
+            if(this.chartChild[item].length)
+                this.showLineChart(evt.nextSibling.childNodes[evt.nextSibling.childNodes.length-1], item);
+            else
+                this.noDataException(evt.nextSibling.childNodes[evt.nextSibling.childNodes.length-1]);
         }
     };
 
@@ -149,24 +148,31 @@ chartApply.prototype.placeChart = function(){ // 給予tab基本的canvas，準�
 
     switch (evt.htmlFor.replace(/\btab_/gi, '')){
         case 'app_on':
+            this.cleanContent(evt.nextSibling);
             appendCanvas.call(this);
             break;
         case 'server_status_device':
+            this.cleanContent(evt.nextSibling);
             appendCanvas.call(this);
             break;
         case 'server_status_ppl':
+            this.cleanContent(evt.nextSibling);
             appendCanvas.call(this);
             break;
         case 'rides_status_device':
+            this.cleanContent(evt.nextSibling);
             setSingleItem.call(this);
             break;
         case 'rides_status_ppl':
+            this.cleanContent(evt.nextSibling);
             setSingleItem.call(this);
             break;
         case 'advertise':
+            this.cleanContent(evt.nextSibling);
             forADreport.call(this);
             break;
         case 'lineup_status':
+            this.cleanContent(evt.nextSibling);
             setSingleItem.call(this);
             break;
         default:
@@ -176,7 +182,7 @@ chartApply.prototype.placeChart = function(){ // 給予tab基本的canvas，準�
 };
 
 chartApply.prototype.showLineChart = function(tarNode, chartIdx){
-    var labelsArray=[], color10=['hsl(16,74%,52%)', 'hsl(160, 96%, 55%)', 'hsl(62, 96%, 55%)', 'hsl(103,80%,46%)', 'hsl(181,80%,46%)', 'hsl(237,80%,46%)', 'hsl(140, 96%, 55%)', 'hsl(280,80%,46%)', 'hsl(310,80%,46%)', 'hsl(360,80%,46%)'];
+    var labelsArray=[], color10=['hsl(16,74%,42%)', 'hsl(160, 31%, 45%)', 'hsl(36, 64%, 45%)', 'hsl(103,80%,36%)', 'hsl(181,80%,36%)', 'hsl(237,80%,36%)', 'hsl(140, 96%, 45%)', 'hsl(280,80%,36%)', 'hsl(310,80%,36%)', 'hsl(360,80%,36%)'];
     var addTotal = function(data, idx){
         data.totalCount=[];
         for(var i=data[idx[0]].length; i--;){
@@ -192,6 +198,7 @@ chartApply.prototype.showLineChart = function(tarNode, chartIdx){
         var arrayItem=[], dataObj={};
         return (function(){
             labelsArray=Object.getOwnPropertyNames(data[0]).reverse();
+            if(!labelsArray) return;
             labelsArray.reduce(function(previousValue, currentValue, index) {
                     previousValue[currentValue]=[];
                     for(var i= 0, l=data.length; i<l; i++){
@@ -218,11 +225,11 @@ chartApply.prototype.showLineChart = function(tarNode, chartIdx){
         lineChartData.datasets.push({
             type: 'line',
             label: this.language[labelsArray[i]],
-            backgroundColor: 'rgba(151,187,205,0.0)',
+            backgroundColor: 'hsl(65, 100%, 85%)',
             borderColor: color10[i],
             data: [],
             fill: false,
-            borderWidth: 2,
+            borderWidth: 3,
             yAxisID: 'y-axis-2',
             lineTension: 0.1
         });
@@ -272,10 +279,28 @@ chartApply.prototype.showLineChart = function(tarNode, chartIdx){
     console.log(lineChartData);
 };
 
+chartApply.prototype.noDataException = function(target){
+    console.log(1)
+};
+
+chartApply.prototype.setLabelName = function(tagName){
+    var chartTitle = this.doc.createElement('label');
+    if(tagName){
+        chartTitle.className = 'titleStyle';
+        chartTitle.innerText = tagName;
+        // this.language[tagName]
+    }
+
+    return chartTitle;
+};
+
+chartApply.prototype.cleanContent = function(node){
+    node.innerText='';
+}
 chartApply.language={
     'zh-Tw':{
         all: '總數',
-        totalCount: '取票裝置數',
+        totalCount: '總取票 (裝置數/人數)',
         total:'廣告發出',
         redeem:'兌換',
         male: '男生',
@@ -283,7 +308,11 @@ chartApply.language={
         delete: '刪除總數',
         canceled: '逾時裝置數',
         userCanceled:'自行取消裝置數',
-        used: '進場裝置數'
+        used: '進場裝置數',
+        canceledUser: '逾時人數',
+        usedUser: '進場人數',
+        userCanceledUser: '自行取消人數',
+        deviceDateList: '服務使用狀況報表(裝置數)',
     }
 }
 
