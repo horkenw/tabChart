@@ -1,0 +1,28 @@
+.rides-box .table{
+    display: table;
+    border: 1px solid hsla(0, 0%, 0%, 0.6);
+    font-size: 2.5em;
+}
+.rides-box .caption{
+    display: table-caption;
+    text-align: center;
+    font-size: 3em;
+    margin-bottom: 5px;
+}
+.rides-box .thead{
+    display: table-header-group;
+    text-align: center;
+}
+.rides-box .tbody{
+    display: table-row-group;
+}
+.rides-box .tr{
+    display: table-row;
+}
+.rides-box .tr:nth-child(even){
+    background-color: hsla(0, 0%, 70%, 0.4);
+}
+.rides-box .td{
+    display: table-cell;
+    border: 1px solid black;
+}

@@ -1,4 +1,8 @@
 /* DateTimePicker */
+#chart_list label{
+    float: none;
+    width: auto;
+}
 p {
     margin: 0;
     font-size: 12px;
@@ -33,6 +37,7 @@ p {
     padding: 14px 12px;
     border-radius: 2px 2px 0 0;
     width: 10em;
+    height: 5em;
     font-size: 1em;
     font-weight: 400;
     text-transform: uppercase;
@@ -54,7 +59,7 @@ p {
     line-height: 1.6em;
     padding: 1.6em;
     position: absolute;
-    top: 67px;
+    top: 55px;
     left: 0;
     background: hsl(185, 61%, 46%);
     margin-bottom: 10px;
@@ -70,11 +75,40 @@ p {
 .durning{
     position: absolute;
     font-size: 1.2em;
-    bottom: -20px;
-    right: 20px;
+    bottom: 15px;
+    right: 15px;
     z-index: 5;
-    color: white;
+    color: black;
 }
 footer{
     margin-top: 30px;
+}
+
+canvas{
+    background: white;
+    margin-bottom: 10px;
+}
+.tabs label.titlestyle{
+    min-width: 15em;
+    color: black;
+    font-size: 1.5em;
+    line-height: 1em;
+    padding: 0;
+    height: 3em;
+    padding-top: 16px;
+}
+.nodata{
+    clear: both;
+    font-size: 3em;
+    font-weight: 800;
+    color: white;
+    line-height: 2em;
+}
+.table.wrappapper{
+    background: white;
+    color: black;
+}
+.table .td{
+    line-height: 1.5em;
+    text-align: center;
 }

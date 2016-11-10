@@ -21,7 +21,7 @@ function validate(){
                     argu[0][i].nextSibling.innerText='';
                     argu[0][i].parentNode.insertBefore( errMsg.cloneNode(true), argu[0][i].nextSibling)
                 }
-                break
+                break;
             // case 'text':
             //     if(argu[0][i].value){
             //         // argu[0][i].nextSibling.innerText='';
@@ -43,9 +43,9 @@ function validate(){
                         argu[0][i].parentNode.insertBefore( errMsg.cloneNode(true),argu[0][argu[0].length-2].nextSibling.nextSibling.nextSibling)
                     }
                 }
-                break
+                break;
             case 'radio':
-                break
+                break;
             default:
                 break;
         }
@@ -56,13 +56,31 @@ function validate(){
     if(id === selectchk.length) itemschk=true;
     return itemschk;
 }
+function getSearchinfo(rules){
+    var reback;
+    $.ajax({
+        url: '/backend/report/getReport',
+        processData: true,
+        async: false,
+        type: 'post',
+        data: {siteId: rules.get('siteId'), startDate: rules.get('startDate'), endDate: rules.get('endDate'), pictureId: rules.getAll('pictureId[]')},
+        beforeSend: function (xhr) {
+            xhr.setRequestHeader('X-CSRF-Token', csrfToken);
+        },
+        success: function (files) {
+            reback = files;
+        }
+    }).always( function() {
+    });
+    return reback;
+}
 
 $(function() {
     var doc = document,
         selectStand = doc.getElementById('stands'),
-        options = doc.createDocumentFragment(),
-        units = [{ id: 1, name: '六福村' }, { id: 2, name: '麗寶樂園' }, { id: 3, name: '逢甲夜市' }].reverse();
+        options = doc.createDocumentFragment();
 
+    units = units.reverse();
     clearOption(selectStand.options, selectStand);
 
     for (var i = units.length + 1; i--;) {
@@ -72,18 +90,16 @@ $(function() {
             option.value = undefined;
             options.appendChild(option);
         } else {
-            option.text = units[i].name;
-            option.value = units[i].id;
+            option.text = units[i].siteName;
+            option.value = units[i].siteId;
             options.appendChild(option);
         }
-
-
     }
     selectStand.appendChild(options);
 
 
     $('#datetimepicker6').datetimepicker({
-        format: 'YYYY/MM/DD/ HH:MM',
+        format: 'YYYY-MM-DD',
         widgetPositioning: {
             horizontal: 'right',
             vertical: 'bottom'
@@ -91,7 +107,7 @@ $(function() {
         locale: 'zh-tw'
     });
     $('#datetimepicker7').datetimepicker({
-        format: 'YYYY/MM/DD/ HH:MM',
+        format: 'YYYY-MM-DD',
         useCurrent: false, //Important! See issue #1075 
         widgetPositioning: {
             horizontal: 'right',
@@ -109,24 +125,41 @@ $(function() {
     $('#send').on('click', function() {
         if(!validate.call(this, forms)) return;
 
+        $( 'body' ).mask( '讀取中，請稍後…' );
+        $(this).addClass('deny');
         fdata = new FormData(document.forms['chartargu']);
+        var today = ytd = new Date();
 
         for (var i = 0, leng = forms.length - 1; i < leng; i++) {
             var selectedOP = forms[i].options || forms[i];
             if (i) {
                 if (i <= 2)
-                    fdata.append('duringTime[]', selectedOP.value);
+                    if(1==i)
+                        fdata.append('startDate', selectedOP.value);
+                    else {
+                        var date = selectedOP.value.length ? selectedOP.value : moment(ytd.setDate(today.getDate() - 1)).format('YYYY-MM-DD');
+                        selectedOP.value = date;
+                        if(moment(fdata.get('startDate')).format('x') > moment(date).format('x')){
+                            var startDate = moment([moment(date).year(), moment(date).month()-2]).startOf('month').format('YYYY-MM-DD');
+                            forms[i-1].value = startDate;
+                            fdata.delete('startDate');
+                            fdata.append('startDate', startDate);
+                        }
+                        fdata.append('endDate', selectedOP.value);
+                    }
                 else {
                     if (selectedOP.checked && selectedOP.value === 'all') {
-                        fdata.append('chartType', true);
+                        for(var i= 1, l=document.getElementById('chart_list').getElementsByTagName('input').length; i<l; i++){
+                            fdata.append('pictureId[]', i);
+                        }
                         break;
                     } else if (selectedOP.checked)
-                        fdata.append('chartType[]', selectedOP.value);
+                        fdata.append('pictureId[]', selectedOP.value);
                 }
             } else {
-                fdata.append('standName', selectedOP[selectedOP.selectedIndex].value);
+                fdata.append('siteId', selectedOP[selectedOP.selectedIndex].value);
             }
         }
-        var chart = new chartApply([{app_on: [{name: '依年齡區分', total: [250, 130, 120] }, {name: '總攬', total:[320, 180]}]}, {server: [{ name: '服務使用狀況報表(裝置數)', total: 250 }]}, { name: '服務使用狀況報表(人數)', total: 250 }, { name: '各設施使用狀況報表(裝置數)', total: 250 }, { name: '各設施使用狀況報表(人數)', total: 250 }, { name: '廣告發送與兌換狀況報表(裝置數)', total: 250 }, { name: '目前設施排隊狀況報表(人數)', total: 250 }], true);
+        var chart = new chartApply(getSearchinfo(fdata), true, 'zh-Tw');
     })
 });

@@ -60,7 +60,7 @@ chartApply.prototype.chartTabs = function(tabs) {
         return liClone;
     };
 
-    this.wrapDom.innerText = '';
+    this.cleanContent(this.wrapDom);
     for (var i = counts; i--;) {
         var liEle = liDOM.call(this, frag, i, tabs);
         frag.appendChild(liEle);
@@ -117,33 +117,94 @@ chartApply.prototype.placeChart = function(){ // 給予tab基本的canvas，準�
 
         for(var item in this.chartChild){
             if(typeof this.chartChild[item] === 'string') continue;
-            frag.appendChild(this.setLabelName(item));
-            frag.appendChild(cns.cloneNode(true));
-            frag.children[frag.children.length-1].id=item.toLowerCase();
-            frag.children[frag.children.length-1].setAttribute('data-chartId', item);
-            evt.nextSibling.appendChild(frag);
-            if(this.chartChild[item].length)
+
+            if(this.chartChild[item].length){
+                frag.appendChild(this.setLabelName(this.chartChild.facilityName ? this.chartChild.facilityName : item));
+                frag.appendChild(cns.cloneNode(true));
+                frag.children[frag.children.length-1].id=item.toLowerCase();
+                frag.children[frag.children.length-1].setAttribute('data-chartId', item);
+                evt.nextSibling.appendChild(frag);
                 this.showLineChart(evt.nextSibling.childNodes[evt.nextSibling.childNodes.length-1], item);
-            else
+            }
+            else{
+                frag.appendChild(this.setLabelName(this.chartChild.facilityName ? this.chartChild.facilityName : item));
+                frag.appendChild(this.doc.createElement('div'));
+                evt.nextSibling.appendChild(frag);
                 this.noDataException(evt.nextSibling.childNodes[evt.nextSibling.childNodes.length-1]);
+            }
         }
     };
 
     var setSingleItem = function(){
-        var itemsList = this.chartChild;
-        for(var i=itemsList.length; i--;){
-            this.chartChild = itemsList[i];
-            appendCanvas.call(this);
+        var itemsList = this.chartChild,
+            frag = this.doc.createDocumentFragment();
+        if(itemsList.length){
+            for(var i=itemsList.length; i--;){
+                this.chartChild = itemsList[i];
+                appendCanvas.call(this);
+            }
+        }
+        else{
+            frag.appendChild(this.doc.createElement('div'));
+            evt.nextSibling.appendChild(frag);
+            this.noDataException(evt.nextSibling.childNodes[evt.nextSibling.childNodes.length-1]);
         }
     };
 
     var forADreport = function(){
+        var adData = this.data[this.data.length-1].name === 'adReport'? this.data[this.data.length-1][this.data[this.data.length-1].name] : this.data[this.data.length-2][this.data[this.data.length-2].name]
         this.chartChild={};
-        this.chartChild.adUseVOList = this.data[0][this.data[0].name].adUseVOList;
+        this.chartChild.adUseVOList = adData.adUseVOList;
         appendCanvas.call(this);
         this.chartChild={};
-        this.chartChild.adAgeList = this.data[0][this.data[0].name].adAgeList;
+        this.chartChild = adData.adAgeList;
         setSingleItem.call(this);
+    };
+
+    var reportStatue = function(){
+        var data=[],
+            frag = this.doc.createDocumentFragment(),
+            _label = this.doc.createElement('label'),
+            _div = this.doc.createElement('div'),
+            _select = this.doc.createElement('select');
+
+        if(this.chartChild.length){
+
+            for(var i = this.chartChild.length; i--;){
+                data.push(this.chartChild[i]['entity'][0]);
+            }
+            this.chartChild= data;
+
+            frag.appendChild(_label);
+            _label.innerText = '目前排隊現況資訊';
+            _label.className = 'titlestyle';
+
+            var sorDiv = _div.cloneNode(false);
+            sorDiv.className = 'col-md-2 pull-right';
+            sorDiv.appendChild(_select);
+            _select.id='srot_options';
+            _select.className='form-control';
+            frag.appendChild(sorDiv);
+            _select.addEventListener('change', this.sortTableData.bind(this));
+
+            var wrapper=_div.cloneNode(false);
+            wrapper.className = 'rides-box';
+            frag.appendChild(wrapper);
+            frag.querySelector('.rides-box').innerHTML = '<div id="chartTable" class="table"></div>';
+            evt.nextSibling.appendChild(frag);
+
+            for(var i= 0, l=this.chartChild.length; i<l; i++){
+                this.chartChild[i].totalCount=0;
+                this.chartChild[i].totalCount = this.chartChild[i].canceledUser+this.chartChild[i].userCanceledUser+this.chartChild[i].usedUser+this.chartChild[i].notUsed;
+            }
+            this.setOptions(_select, Object.getOwnPropertyNames(data[0]));
+            this.showStatus();
+        }
+        else{
+            frag.appendChild(_div);
+            this.noDataException(_div);
+            evt.nextSibling.appendChild(frag);
+        }
     };
 
     switch (evt.htmlFor.replace(/\btab_/gi, '')){
@@ -173,7 +234,7 @@ chartApply.prototype.placeChart = function(){ // 給予tab基本的canvas，準�
             break;
         case 'lineup_status':
             this.cleanContent(evt.nextSibling);
-            setSingleItem.call(this);
+            reportStatue.call(this);
             break;
         default:
             console.log(evt.htmlFor.replace(/\btab_/gi, ''));
@@ -183,18 +244,18 @@ chartApply.prototype.placeChart = function(){ // 給予tab基本的canvas，準�
 
 chartApply.prototype.showLineChart = function(tarNode, chartIdx){
     var labelsArray=[], color10=['hsl(16,74%,42%)', 'hsl(160, 31%, 45%)', 'hsl(36, 64%, 45%)', 'hsl(103,80%,36%)', 'hsl(181,80%,36%)', 'hsl(237,80%,36%)', 'hsl(140, 96%, 45%)', 'hsl(280,80%,36%)', 'hsl(310,80%,36%)', 'hsl(360,80%,36%)'];
-    var addTotal = function(data, idx){
-        data.totalCount=[];
+    var addTotal = function(data, idx, val){
+        data[val]=[];
         for(var i=data[idx[0]].length; i--;){
             var totalCount = 0;
 
             for(var j=idx.length; j--;) totalCount += data[idx[j]][i];
-            data.totalCount.push(totalCount);
+            data[val].push(totalCount);
         }
-        data.totalCount.reverse();
-        idx.push('totalCount');
+        data[val].reverse();
+        idx.push(val);
     };
-    var sortToArray = function(data, addTotal){
+    var sortToArray = function(data){
         var arrayItem=[], dataObj={};
         return (function(){
             labelsArray=Object.getOwnPropertyNames(data[0]).reverse();
@@ -212,14 +273,16 @@ chartApply.prototype.showLineChart = function(tarNode, chartIdx){
     };
     var chartData, //將以每日物件重新整理為以項目為單位的陣列
         lineChartData = {
-        labels: [],
-        datasets: []
-    };
-    chartData = sortToArray(this.chartChild[chartIdx], addTotal);
+            labels: [],
+            datasets: []
+        };
+
+    chartData = sortToArray(this.chartChild[chartIdx]);
     var removeidx = labelsArray.indexOf('reservationDate')>=0 ? labelsArray.indexOf('reservationDate'): labelsArray.indexOf('range'),
         chartLabels = labelsArray.splice(removeidx, 1);
     if (labelsArray.indexOf('facilityName')>=0) labelsArray.splice(labelsArray.indexOf('facilityName'), 1)
-    if(chartIdx!=='ageAllList' && chartIdx!== 'dateList' && chartIdx!=='adUseVOList') addTotal(chartData, labelsArray);
+    if(chartIdx!=='ageAllList' && chartIdx!=='ageExList' && chartIdx!== 'dateList' && chartIdx!=='adUseVOList') addTotal(chartData, labelsArray, 'totalCount');
+    if(chartIdx === 'ageExList') addTotal(chartData, labelsArray, 'allCount');
 
     for(var i=labelsArray.length; i--;) // 根據分類(ex: 男生、女生)，設定圖表基本選項
         lineChartData.datasets.push({
@@ -276,21 +339,110 @@ chartApply.prototype.showLineChart = function(tarNode, chartIdx){
         options: lineChartOptions
     });
     ctxLine.fillStyle='white';
-    console.log(lineChartData);
+    //console.log(lineChartData);
+};
+
+chartApply.prototype.setOptions = function(node, opArray){
+    var theadArray=[];
+
+    opArray.map(function(currentValue, index){
+        theadArray.push(currentValue);
+    }, theadArray);
+
+    for (var i = opArray.length + 1; i--;) {
+        var option = this.doc.createElement('option');
+        if (opArray.length === i) {
+            option.text = '請選擇排序方式';
+            option.value = undefined;
+            node.appendChild(option);
+        } else {
+            if( i == 4) continue;
+            option.text = this.language[opArray[i]];
+            option.value = i;
+            node.appendChild(option);
+        }
+    }
+};
+
+chartApply.prototype.showStatus = function(){
+    var dataitems = this.chartChild,
+        table = document.getElementById('chartTable'),
+        tr = document.createElement('div'),
+        td = tr.cloneNode(false),
+        thead = tr.cloneNode(false),
+        tbody = tr.cloneNode(false);
+
+    table.innerHTML='';
+    table.className += ' wrappapper';
+    var theadName = Object.getOwnPropertyNames(this.chartChild[0]);
+    table.appendChild(thead);
+    thead.className ='thead';
+    thead.innerHTML = sprintf('<div class="tr"><div class="td">%s</div><div class="td">%s</div><div class="td">%s</div><div class="td">%s</div><div class="td">%s</div><div class="td">%s</div></div>',
+        this.language['facilityName'], '總取票人數', this.language['usedUser'], this.language['canceledUser'], this.language['notUsed'], this.language['userCanceledUser']);
+    thead.getElementsByClassName('tr')[0].querySelectorAll('.td');
+    table.appendChild(tbody);
+    tbody.className = 'tbody';
+    for(var i = dataitems.length; i--; ){
+        tbody.innerHTML += sprintf('<div class="tr"><div class="td">%s</div><div class="td">%s</div><div class="td">%s</div><div class="td">%s</div><div class="td">%s</div><div class="td">%s</div></div>',
+            this.chartChild[i][theadName[4]], this.chartChild[i][theadName[5]], this.chartChild[i][theadName[0]], this.chartChild[i][theadName[1]], this.chartChild[i][theadName[2]], this.chartChild[i][theadName[3]]);
+    };
+};
+
+chartApply.prototype.sortTableData = function(){
+    var evt = Array.prototype.slice.call(arguments, 0)[0].target;
+    switch (evt.options[evt.options.selectedIndex].value){
+        case '0':
+            this.chartChild.sort(function(a, b){
+                return a.usedUser - b.usedUser;
+            });
+            this.showStatus();
+            break;
+        case '5':
+            this.chartChild.sort(function(a, b){
+                return a.totalCount - b.totalCount;
+            });
+            this.showStatus();
+            break;
+        case '1':
+            this.chartChild.sort(function(a, b){
+                return a.canceledUser - b.canceledUser;
+            });
+            this.showStatus();
+            break;
+        case '2':
+            this.chartChild.sort(function(a, b){
+                return a.notUsed - b.notUsed;
+            });
+            this.showStatus();
+            break;
+        case '3':
+            this.chartChild.sort(function(a, b){
+                return a.userCanceledUser - b.userCanceledUser;
+            });
+            this.showStatus();
+            break;
+        case '4':
+            this.chartChild.sort(function(a, b){
+                return a.facilityName - b.facilityName;
+            });
+            this.showStatus();
+            break;
+        default:
+            console.log('option value: '+evt.options[evt.options.selectedIndex].value);
+    }
 };
 
 chartApply.prototype.noDataException = function(target){
-    console.log(1)
+    target.className = 'nodata';
+    target.innerHTML = '此區間查無資料';
 };
 
 chartApply.prototype.setLabelName = function(tagName){
     var chartTitle = this.doc.createElement('label');
     if(tagName){
-        chartTitle.className = 'titleStyle';
-        chartTitle.innerText = tagName;
-        // this.language[tagName]
+        chartTitle.className = 'titlestyle';
+        chartTitle.innerText =!this.language[tagName] ? tagName : this.language[tagName]
     }
-
     return chartTitle;
 };
 
@@ -299,20 +451,35 @@ chartApply.prototype.cleanContent = function(node){
 }
 chartApply.language={
     'zh-Tw':{
-        all: '總數',
-        totalCount: '總取票 (裝置數/人數)',
+        allCount: '總兌換數',
+        totalCount: '總取票數',
+        totalCountDevice: '總裝置數',
+        totalCounDevicet:'總裝置數',
         total:'廣告發出',
         redeem:'兌換',
         male: '男生',
+        maleDevice: '男生裝置數',
+        maleExchange: '男生兌換數',
         female:'女生',
+        femaleDevice: '女生裝置數',
+        femaleExchange: '女生兌換數',
         delete: '刪除總數',
         canceled: '逾時裝置數',
         userCanceled:'自行取消裝置數',
         used: '進場裝置數',
         canceledUser: '逾時人數',
-        usedUser: '進場人數',
+        usedUser: '已進場人數',
         userCanceledUser: '自行取消人數',
+        dateList: '啟用APP總覽',
+        ageAllList:'所有年齡總覽',
+        ageAllLists:'所有年齡總覽',
         deviceDateList: '服務使用狀況報表(裝置數)',
+        ageMList: '依年齡區分 - 男生',
+        ageFList: '依年齡區分 - 女生',
+        ratioVOList: '服務使用狀況總覽',
+        adUseVOList: '廣告發送與兌換總表',
+        notUsed: '未使用人數',
+        facilityName: '設施名稱'
     }
 }
 
