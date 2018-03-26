@@ -3,61 +3,39 @@ function clearOption(nod, appendNod) {
         appendNod.remove(0);
     }
 }
-function validate(){
-    var argu = Array.prototype.slice.call(arguments, 0),
-        selectchk=[false, false], id=0,
-        itemschk = false;
+function errorMsg(message){
     var errMsg = document.createElement('span');
     errMsg.className += 'red';
-    errMsg.innerText = '請至少選擇一項查詢資料';
-    for(var i=0, l = argu[0].length; i < l; i++){
-        switch (argu[0][i].type){
-            case 'select-one':
-                if('undefined' !== argu[0][i].options[argu[0][i].selectedIndex].value) {
-                    argu[0][i].nextSibling.innerText='';
-                    selectchk[0] = true
-                }
-                else {
-                    argu[0][i].nextSibling.innerText='';
-                    argu[0][i].parentNode.insertBefore( errMsg.cloneNode(true), argu[0][i].nextSibling)
-                }
-                break;
-            // case 'text':
-            //     if(argu[0][i].value){
-            //         // argu[0][i].nextSibling.innerText='';
-            //         selectchk[i] = true;
-            //     }
-            //     // else {
-            //     //     argu[0][i].nextSibling.innerText='';
-            //     //     argu[0][i].parentNode.insertBefore( errMsg.cloneNode(true), argu[0][i].nextSibling)
-            //     // }
-            //     break
-            case 'checkbox':
-                if(!selectchk[1]){
-                    if(argu[0][i].checked){
-                        argu[0][argu[0].length-2].nextSibling.nextSibling.nextSibling.innerText='';
-                        selectchk[1] = true;
-                    }
-                    else{
-                        argu[0][argu[0].length-2].nextSibling.nextSibling.nextSibling.innerText='';
-                        argu[0][i].parentNode.insertBefore( errMsg.cloneNode(true),argu[0][argu[0].length-2].nextSibling.nextSibling.nextSibling)
-                    }
+    errMsg.innerText = message;
+
+    return errMsg;
+}
+function validate(){
+    let itemschk = true;
+    const target = document.querySelectorAll('[data-validate]');
+    for(let i = target.length; i--;)
+        switch (target[i].dataset.validate){
+            case 'option':
+                target[i].nextSibling.innerText=''
+                if(!target[i].selectedIndex){
+                    itemschk = false;
+                    target[i].parentNode.insertBefore(errorMsg('請至少選擇一項查詢據點'), target[i].nextSibling);
                 }
                 break;
-            case 'radio':
+            case 'multi':
+                if(target[i].lastElementChild.localName==='span') target[i].lastElementChild.innerText=''
+                if(!selectBox.length){
+                    itemschk = false;
+                    target[i].insertBefore(errorMsg('請至少選擇一項圖表'), target[i].lastChild);
+                }
                 break;
             default:
-                break;
+                return false;
         }
-    } 
-    while(selectchk[id]){
-        id++;
-    }
-    if(id === selectchk.length) itemschk=true;
     return itemschk;
 }
 function getSearchinfo(rules){
-    var reback;
+    let reback;
     $.ajax({
         url: '/backend/report/getReport',
         processData: true,
@@ -74,13 +52,13 @@ function getSearchinfo(rules){
     });
     return reback;
 }
-
+const selectBox = [];
 $(function() {
-    var doc = document,
+    const doc = document,
         selectStand = doc.getElementById('stands'),
         options = doc.createDocumentFragment();
 
-    units = units.reverse();
+    let units = [{ siteId: 1, siteName: '六福村' }, { siteId: 2, siteName: '麗寶樂園' }, { siteId: 3, siteName: '逢甲夜市' }].reverse();
     clearOption(selectStand.options, selectStand);
 
     for (var i = units.length + 1; i--;) {
@@ -121,13 +99,29 @@ $(function() {
     $("#datetimepicker7").on("dp.change", function(e) {
         $('#datetimepicker6').data("DateTimePicker").maxDate(e.date);
     });
-    var fdata, forms = document.forms['chartargu'];
-    $('#send').on('click', function() {
-        if(!validate.call(this, forms)) return;
 
-        $( 'body' ).mask( '讀取中，請稍後…' );
+    const fdata = new FormData(document.forms['chartargu']), forms = document.forms['chartargu'];
+    $('#chart_list').on('click', (evt) => {
+        if(evt.target.localName === 'label') return;
+        let option = evt.target;
+        if(option.value === 'all'){
+            let checkboxs = document.getElementsByName('c')
+            if(option.checked) selectBox.splice(0, selectBox.length, '1', '2', '3', '4', '5', '6', '7');
+            else selectBox.splice(0, selectBox.length);
+            for (var i = 0; i < checkboxs.length; i++) {
+                checkboxs[i].checked = option.checked;
+            }
+            return ;
+        }
+        if(option.value && selectBox.indexOf(option.value) < 0) selectBox.push(option.value);
+        else selectBox.splice(selectBox.indexOf(option.value), 1);
+    })
+
+    $('#send').on('click', function() {
+        // if(!validate.call(this, forms)) return;
+        if(!validate.call()) return;
+
         $(this).addClass('deny');
-        fdata = new FormData(document.forms['chartargu']);
         var today = ytd = new Date();
 
         for (var i = 0, leng = forms.length - 1; i < leng; i++) {
@@ -147,19 +141,15 @@ $(function() {
                         }
                         fdata.append('endDate', selectedOP.value);
                     }
-                else {
-                    if (selectedOP.checked && selectedOP.value === 'all') {
-                        for(var i= 1, l=document.getElementById('chart_list').getElementsByTagName('input').length; i<l; i++){
-                            fdata.append('pictureId[]', i);
-                        }
-                        break;
-                    } else if (selectedOP.checked)
-                        fdata.append('pictureId[]', selectedOP.value);
-                }
-            } else {
+                else break;
+            } 
+            else {
                 fdata.append('siteId', selectedOP[selectedOP.selectedIndex].value);
             }
         }
+        for(let i=selectBox.length; i--;)
+            fdata.append('pictureId[]', selectBox[i]);
+
         var chart = new chartApply(getSearchinfo(fdata), true, 'zh-Tw');
     })
 });

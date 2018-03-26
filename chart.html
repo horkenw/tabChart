@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="./css/icon_style.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.43/css/bootstrap-datetimepicker.min.css">
     <link rel="stylesheet" href="./css/chartcss.css">
-    <script src="https://dl.dropboxusercontent.com/u/50502234/jquery.min.js"></script>
+    <script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
     <script src="./js/bootstrap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.15.1/moment.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.43/js/bootstrap-datetimepicker.min.js"></script>
@@ -23,14 +23,6 @@
       <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
       <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
-    <script type="text/javascript">
-    function check_all(obj, cName) {
-        var checkboxs = document.getElementsByName(cName);
-        for (var i = 0; i < checkboxs.length; i++) {
-            checkboxs[i].checked = obj.checked;
-        }
-    }
-    </script>
     <style>
         .red{
             color:  red;
@@ -59,11 +51,8 @@
                                         <label class="col-md-4 control-label">
                                             <font color="red">*</font>查詢站點</label>
                                         <div class="col-md-8">
-                                            <select id="stands" class="form-control">
+                                            <select id="stands" class="form-control" data-validate="option">
                                                 <option value="請選擇">請選擇</option>
-                                                <option value="麗寶">麗寶樂園</option>
-                                                <option value="抽票">六福村</option>
-                                                <option value="取票">逢甲商圈</option>
                                             </select>
                                             開發注意:需綁站點權限
                                         </div>
@@ -95,30 +84,30 @@
                                         <label class="col-md-4 control-label">
                                             <font color="red">*</font>查詢報表
                                         </label>
-                                        <div id="chart_list" class="col-md-8">
-                                            <input type="checkbox" value="all" name="all" onclick="check_all(this,'c')" id="all">
-                                            <label for="00">全選/全不選</label>
+                                        <div id="chart_list" class="col-md-8" data-validate="multi">
+                                            <input type="checkbox" value="all" name="all" id="all">
+                                            <label for="all">全選/全不選</label>
                                             <br>
-                                            <input type="checkbox" data-items="app_on" name="c" value="1">
-                                            <label for="01">啟用App裝置數</label>
+                                            <input id="item1" type="checkbox" data-items="app_on" name="c" value=1>
+                                            <label for="item1">啟用App裝置數</label>
                                             <br>
-                                            <input type="checkbox" data-items="server_status_device" name="c" value="2">
-                                            <label for="02">服務使用狀況報表(裝置數)</label>
+                                            <input id="item2" type="checkbox" data-items="server_status_device" name="c" value=2>
+                                            <label for="item2">服務使用狀況報表(裝置數)</label>
                                             <br>
-                                            <input type="checkbox" data-items="server_status_ppl" name="c" value="3">
-                                            <label for="03">服務使用狀況報表(人數)</label>
+                                            <input id="item3" type="checkbox" data-items="server_status_ppl" name="c" value=3>
+                                            <label for="item3">服務使用狀況報表(人數)</label>
                                             <br>
-                                            <input type="checkbox" data-items="rides_status_device" name="c" value="4">
-                                            <label for="04">各設施使用狀況報表(裝置數)</label>
+                                            <input id="item4" type="checkbox" data-items="rides_status_device" name="c" value=4>
+                                            <label for="item4">各設施使用狀況報表(裝置數)</label>
                                             <br>
-                                            <input type="checkbox" data-items="rides_status_ppl" name="c" value="5">
-                                            <label for="07">各設施使用狀況報表(人數)</label>
+                                            <input id="item7" type="checkbox" data-items="rides_status_ppl" name="c" value=5>
+                                            <label for="item7">各設施使用狀況報表(人數)</label>
                                             <br>
-                                            <input type="checkbox" data-items="advertise" name="c" value="6">
-                                            <label for="05">廣告發送與兌換狀況報表(裝置數)</label>
+                                            <input id="item5" type="checkbox" data-items="advertise" name="c" value=6>
+                                            <label for="item5">廣告發送與兌換狀況報表(裝置數)</label>
                                             <br>
-                                            <input type="checkbox" data-items="lineup_status" name="c" value="7">
-                                            <label for="06">目前設施排隊狀況報表(人數)</label>
+                                            <input id="item6" type="checkbox" data-items="lineup_status" name="c" value=7>
+                                            <label for="item6">目前設施排隊狀況報表(人數)</label>
                                         </div>
                                     </div>
                                 </div>
